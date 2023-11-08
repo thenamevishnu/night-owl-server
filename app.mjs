@@ -3,8 +3,10 @@ import cors from "cors"
 import dotenv from "dotenv"
 import userRouter from "./Router/user.mjs"
 import adminRouter from "./Router/admin.mjs"
+import * as db from "./Database/Connection.mjs"
 
 dotenv.config()
+db.connect()
 
 const app = express()
 
