@@ -32,6 +32,32 @@ const userSchema = new mongoose.Schema({
     is_verified: {
         type: Boolean,
         default: false
+    },
+    saved_posts: {
+        type: Array,
+        default: []
+    },
+    proposals: {
+        type: Array,
+        default: []
+    },
+    resume:{
+        title:{
+            type: String,
+            default: "Developer"
+        },
+        rate_per_hr: {
+            type: Number,
+            default: 5
+        },
+        description: {
+            type: String,
+            default: "Self-taught web developer"
+        },
+        skills: {
+            type: Array,
+            default: []
+        }
     }
 },{
     timestamps: true

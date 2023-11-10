@@ -12,9 +12,10 @@ Route.get("/get-full-jobs/:filters", postController.getFullJobs)
 Route.get("/get-latest-jobs", postController.getLatestJobs)
 
 Route.post("/post-job", Authorization, postController.postJob)
-Route.get("/get-job-with-id/:id", Authorization, postController.getJobWithId)
-Route.get("/get-user-by-id/:id", Authorization, userController.getUserById)
-
+Route.get("/get-job-with-id/:id", postController.getJobWithId)
+Route.get("/get-user-by-id/:id", userController.getUserById)
+Route.post("/save-job", Authorization, postController.saveJob)
+Route.post("/send-proposal", Authorization, postController.sendProposal)
 
 
 

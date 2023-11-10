@@ -1,5 +1,6 @@
 import mongoose from "mongoose"
 import { postDB } from "../Model/postModel.mjs"
+import { userDB } from "../Model/userModel.mjs"
 
 const postJob = async (req, res) => {
     try{
@@ -15,6 +16,7 @@ const postJob = async (req, res) => {
         }
         res.json(obj)
     }catch(err){
+        console.log(err);
         res.json({statusCode: 500, message: "Internal Server Error"})
     }
 }
@@ -89,21 +91,75 @@ const getLatestJobs = async (req, res) => {
 const getJobWithId = async (req, res) => {
     try{
         const response = await postDB.findOne({_id: new mongoose.Types.ObjectId(req.params.id)})
+        const result = await postDB.find({_id:{$ne: new mongoose.Types.ObjectId(req.params.id)}, tags: {$in: response.tags}}).limit(5)
         const obj = {}
-        if(response._id){
+        if(response._id && Array.isArray(result)){
             obj.statusCode = 200
-            obj.message = response
+            obj.message = { job: response, recommentation: result }
         }else{
             obj.statusCode = 500
             obj.message = "Something went wrong"
         }
         res.json(obj)
     }catch(err){
-        console.log(err);
+        res.json({statusCode: 500, message: "Internal Server Error"})
+    }
+}
+
+const saveJob = async (req, res) => {
+    try{
+        const {job_id, user_id} = req.body
+        const response = await userDB.findOne({_id: new mongoose.Types.ObjectId(user_id), saved_posts: new mongoose.Types.ObjectId(job_id)})
+        const obj = {}
+        if(response){
+            const response = await userDB.updateOne({_id: new mongoose.Types.ObjectId(user_id)},{$pull:{saved_posts: new mongoose.Types.ObjectId(job_id)}})
+            if(response.modifiedCount>0){
+                obj.statusCode = 200
+                obj.message = "Removed from saved"
+            }else{
+                obj.statusCode = 500
+                obj.message = "Something went wrong"
+            }
+        }else{
+            const response = await userDB.updateOne({_id: new mongoose.Types.ObjectId(user_id)},{$push:{saved_posts: new mongoose.Types.ObjectId(job_id)}})
+            if(response.modifiedCount>0){
+                obj.statusCode = 200
+                obj.message = "Saved"
+            }else{
+                obj.statusCode = 500
+                obj.message = "Something went wrong"
+            }
+        }
+        res.json(obj)
+    }catch(err){
+        res.json({statusCode: 500, message: "Internal Server Error"})
+    }
+}
+
+const sendProposal = async (req, res) => {
+    try{
+        const {job_id, user_id} = req.body
+        const response = await userDB.findOne({_id: new mongoose.Types.ObjectId(user_id), proposals: new mongoose.Types.ObjectId(job_id)})
+        const obj = {}
+        if(response){
+            obj.statusCode = 409
+            obj.message = "Proposal already sent"
+        }else{
+            const response = await userDB.updateOne({_id: new mongoose.Types.ObjectId(user_id)},{$push:{proposals: new mongoose.Types.ObjectId(job_id)}})
+            if(response.modifiedCount>0){
+                obj.statusCode = 200
+                obj.message = "Proposal sent"
+            }else{
+                obj.statusCode = 500
+                obj.message = "Something went wrong"
+            }
+        }
+        res.json(obj)
+    }catch(err){
         res.json({statusCode: 500, message: "Internal Server Error"})
     }
 }
 
 export default {
-    postJob, getFullJobs, getLatestJobs, getJobWithId
+    postJob, getFullJobs, getLatestJobs, getJobWithId, saveJob, sendProposal
 }
